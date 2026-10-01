@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#6b4f3a">
+<title>中国茶の歴史 一問一答</title>
+<style>
+:root{--bg:#f6f1e8;--card:#fffdf8;--ink:#2d2925;--sub:#756b63;--accent:#6b4f3a;--line:#ded4c8;--ok:#52785c;--ng:#9a5b52}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif}
+header{padding:22px 18px 16px;background:var(--accent);color:white} header h1{font-size:22px;margin:0 0 5px} header p{margin:0;font-size:13px;opacity:.9}
+main{max-width:720px;margin:auto;padding:14px 14px 36px}.panel,.card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 2px 10px #00000008}
+.panel{padding:14px;margin-bottom:12px}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+select,button{font:inherit;border-radius:12px;border:1px solid var(--line);padding:11px 13px;background:white;color:var(--ink)}
+select{flex:1;min-width:190px}button{cursor:pointer;font-weight:700}button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}button.ok{background:#edf5ee;border-color:#b9cfbd;color:#34563d}button.ng{background:#fbefed;border-color:#e0bdb7;color:#75423b}
+.stats{font-size:13px;color:var(--sub);display:flex;justify-content:space-between;margin-top:10px}
+.card{padding:22px 18px;margin-bottom:12px;min-height:280px;display:flex;flex-direction:column}.tag{display:inline-block;font-size:12px;color:var(--accent);background:#efe7dd;border-radius:99px;padding:5px 9px;margin-bottom:14px}.q{font-size:21px;line-height:1.65;font-weight:800}.hint{font-size:13px;color:var(--sub);margin-top:10px;line-height:1.6}
+.answer{margin-top:20px;padding:16px;border-left:4px solid var(--accent);background:#f7f1ea;border-radius:8px;font-size:17px;line-height:1.75;white-space:pre-wrap}
+.answer[hidden]{display:none}.controls{margin-top:auto;padding-top:18px}.controls .row{justify-content:center}.controls button{flex:1;min-width:120px}
+.progress{height:7px;background:#e6ddd3;border-radius:99px;overflow:hidden;margin:12px 0}.bar{height:100%;width:0;background:var(--accent);transition:width .2s}
+.small{font-size:12px;color:var(--sub);line-height:1.6}.check{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--sub)}input[type=checkbox]{width:18px;height:18px}
+footer{text-align:center;color:var(--sub);font-size:11px;padding:8px}
+@media(min-width:600px){.q{font-size:23px}.card{padding:28px 26px}}
+</style>
+</head>
+<body>
+<header><h1>🍵 中国茶の歴史 一問一答</h1><p>今回はノートに書いた内容だけを暗記します。</p></header>
+<main>
+<section class="panel">
+  <div class="row">
+    <select id="mode">
+      <option value="all">ノート全部</option>
+      <option value="weak">まだ覚えていない問題</option>
+    </select>
+    <button class="primary" id="reset">進捗リセット</button>
+  </div>
+  <div class="stats"><span id="count"></span><span id="score"></span></div>
+  <div class="progress"><div class="bar" id="bar"></div></div>
+  <label class="check"><input type="checkbox" id="random" checked> ランダム出題</label>
+</section>
+
+<section class="card">
+  <div><span class="tag" id="tag">準備中</span></div>
+  <div class="q" id="question">問題を読み込んでいます…</div>
+  <div class="hint" id="hint"></div>
+  <div class="answer" id="answer" hidden></div>
+  <div class="controls">
+    <div class="row">
+      <button class="primary" id="show">答えを見る</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button class="ng" id="wrong">まだ覚えていない</button>
+      <button class="ok" id="correct">覚えた</button>
+    </div>
+  </div>
+</section>
+<footer>ノートの内容だけを収録。年号・教科書本文の追加問題は入れていません。<br>「覚えた」を押すとその問題は一巡から外れます。進捗はこの端末のブラウザに保存されます。</footer>
+</main>
+
+<script>
+const DATA = [
+{id:"n01",c:"note",q:"中国茶の原産地として、ノートで覚える地域は？",a:"雲南省西南部の西双版納（シーサンパンナ）。"},
+{id:"n02",c:"note",q:"漢代の喫茶の起源について、ノートに出てくる人物と文献は？",a:"四川（蜀）の王褒が記した『僮約』。"},
+{id:"n03",c:"note",q:"王褒の『僮約』に出てくる、喫茶に関する2つの語句は？",a:"「烹荼尽具」と「武陽買荼」。"},
+{id:"n04",c:"note",q:"三国時代～晋の時代、喫茶習慣はどのような階級に流行した？",a:"官僚や王侯貴族など、上流階級に流行した。"},
+{id:"n05",c:"note",q:"三国時代～晋の時代、茶は宴席で何の代わりに飲まれた？",a:"酒の代わり。酒に弱い人も宴席で茶を飲んでいた。"},
+{id:"n06",c:"note",q:"茶を嫌う者は、茶を何という名前で呼んだ？",a:"「水厄」と呼んだ。"},
+{id:"n07",c:"note",q:"南北朝時代になると、喫茶習慣はどこまで浸透した？",a:"庶民層にも浸透した。"},
+{id:"n08",c:"note",q:"唐代、陸羽が著した茶書は？",a:"『茶経』三巻。"},
+{id:"n09",c:"note",q:"唐代、回紇との間で何と何を交易した？",a:"馬と茶を交易した。"},
+{id:"n10",c:"note",q:"唐代、福建観察使の常衮が作った茶は？",a:"研茶。"},
+{id:"n11",c:"note",q:"唐代の製茶で主流だったのは何茶？",a:"餅茶。"},
+{id:"n12",c:"note",q:"餅茶と投茶法は、仏教とともにどこへ伝わった？",a:"朝鮮半島と日本。"},
+{id:"n13",c:"note",q:"唐代に施行された、茶の専売制度は？",a:"榷茶（かくちゃ）という専売制度。"},
+{id:"n14",c:"note",q:"唐末期に作られるようになった団茶で、宋代に北苑茶と呼ばれたものは？",a:"龍鳳団茶。"},
+{id:"n15",c:"note",q:"宋代、上品な龍茶として造られた小型の団茶は？",a:"小龍団茶（上品龍茶）。"},
+{id:"n16",c:"note",q:"宋代、徽宗皇帝が著した茶書は？",a:"『大観茶論』。"},
+{id:"n17",c:"note",q:"栄西が著した茶書は？",a:"『喫茶養生記』三巻。"},
+{id:"n18",c:"note",q:"栄西は宋から何を持ち帰った？",a:"茶種子。"},
+{id:"n19",c:"note",q:"栄西が持ち帰った茶種子を植えた場所は？",a:"筑前の背振山。"},
+{id:"n20",c:"note",q:"元代、武夷山の何をフビライ皇帝に献上した？",a:"武夷山の石乳。"},
+{id:"n21",c:"note",q:"元代、武夷山に何を開設した？",a:"御茶園。"},
+{id:"n22",c:"note",q:"明代、永楽帝は誰を南洋方面へ派遣した？",a:"鄭和。"},
+{id:"n23",c:"note",q:"鄭和の派遣で、何の拡大に努力した？",a:"通商貿易の拡大。"},
+{id:"n24",c:"note",q:"イタリア人ラムージオは中国茶について何をした？",a:"航海記で中国茶を紹介した。"},
+{id:"n25",c:"note",q:"オランダ東インド会社は、どこから中国茶をヨーロッパへ輸出した？",a:"マカオから中国茶を輸出した。"},
+{id:"n26",c:"note",q:"中国茶とともに日本へ伝わったものとして、ノートに挙げられているものは？",a:"日本の菓子、コーヒー、パイなど。"},
+{id:"n27",c:"note",q:"イギリス国王チャールズ2世の時代、イギリスに伝わった文化は？",a:"茶文化。ポルトガル人の王妃を通じて伝わった。"},
+{id:"n28",c:"note",q:"18世紀初頭、イギリスで好まれた松羅茶は何と呼ばれた？",a:"SINGLO（シングロ）。"},
+{id:"n29",c:"note",q:"その後、SINGLOに代わって主流になった武夷山の発酵茶は？",a:"BOHEA（ボヒー）。"},
+{id:"n30",c:"note",q:"清とイギリスの間で勃発した戦争は？",a:"アヘン戦争。"},
+{id:"n31",c:"note",q:"アヘン戦争後の南京条約で、ノートにある重要事項は？",a:"香港を割譲し、五港を開港した。"},
+{id:"n32",c:"note",q:"20世紀前半の戦乱によって、中国の茶産業はどうなった？",a:"崩壊した。"},
+{id:"n33",c:"note",q:"文化大革命によって、中国の茶産業はどうなった？",a:"大いに停滞した。"},
+{id:"n34",c:"note",q:"日中国交回復後、日本では中国茶について何が起きた？",a:"中国茶が輸入され、烏龍茶ブームが起きた。"}
+];
+
+const mode=document.getElementById('mode'), qEl=document.getElementById('question'), aEl=document.getElementById('answer'),
+tagEl=document.getElementById('tag'), hintEl=document.getElementById('hint'), countEl=document.getElementById('count'),
+scoreEl=document.getElementById('score'), bar=document.getElementById('bar');
+let state=JSON.parse(localStorage.getItem('ct_history_note_v1')||'{}');
+let deck=[], current=null, answered=false, round=0;
+
+function save(){localStorage.setItem('ct_history_note_v1',JSON.stringify(state))}
+function pool(){
+  let p;
+  if(mode.value==='all') p=DATA;
+  else p=DATA.filter(x=>!state[x.id]?.correct);
+  return p;
+}
+function next(){
+  deck=pool();
+  if(!deck.length){
+    qEl.textContent='このモードは一巡しました。';
+    tagEl.textContent='完了'; hintEl.textContent='「進捗リセット」または別モードを選んでください。';
+    aEl.hidden=true; document.getElementById('show').disabled=true; return;
+  }
+  document.getElementById('show').disabled=false;
+  const random=document.getElementById('random').checked;
+  current=random ? deck[Math.floor(Math.random()*deck.length)] : deck[0];
+  answered=false; round++;
+  tagEl.textContent='ノート';
+  qEl.textContent=current.q; aEl.textContent=current.a; aEl.hidden=true;
+  hintEl.textContent='まず自分で答えてから「答えを見る」。';
+  update();
+}
+function update(){
+  const p=pool(), done=DATA.filter(x=>state[x.id]?.correct).length;
+  countEl.textContent=`このモード：${p.length}問　／　全体：${DATA.length}問`;
+  scoreEl.textContent=`覚えた ${done} / ${DATA.length}`;
+  bar.style.width=(done/DATA.length*100)+'%';
+}
+function mark(ok){
+  if(!current || answered)return;
+  answered=true;
+  state[current.id]={correct:ok,at:Date.now()};
+  save(); update();
+  setTimeout(next,220);
+}
+document.getElementById('show').onclick=()=>{aEl.hidden=false;hintEl.textContent='答えを声に出して確認しましょう。'};
+document.getElementById('correct').onclick=()=>mark(true);
+document.getElementById('wrong').onclick=()=>mark(false);
+mode.onchange=()=>next();
+document.getElementById('random').onchange=()=>next();
+document.getElementById('reset').onclick=()=>{
+  if(confirm('この端末に保存した暗記進捗をすべてリセットしますか？')){state={};save();next()}
+};
+next();
+</script>
+</body>
+</html>
